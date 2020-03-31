@@ -15,12 +15,16 @@ This guide isn't meant to go in depth about Azure API Management, but more aroun
 
 Either create a new product or use an existing product that you have 'Requires Subscription' and 'Requires Approval' enabled.
 
-[INSERT APIM_1.jpg]
+![API Management Settings][APIM_1]
 
 When 'Requires Approval' is checked, APIM can send an email to notify whoever you have setup in the 'Notifications' --> 'New Subscriptions' section of the portal.  This however doesn't differentiate by product as we mentioned in the introduction. If 'Adam' is set to receive the 'New Subscription' emails, but he doesn't know anything about the the product someone is requesting a subscription to, then he would have to track down someone and see if he should approve it or not.  You could add a bunch of different folks as approvers, but again people would be getting asked to approve for something that they are maybe not the owner of.
 
-[INSERT APIM_2.jpg]
+![API Management Notifications][APIM_2]
 
 Now that we have a product that requires a subscription and approval, lets setup a logic app to do a custom approval workflow.
 
 ## 2 - Logic App
+
+
+[APIM_1]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/APIM_1.jpg "API Management Settings"
+[APIM_2]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/APIM_2.jpg "API Management Notifications"
