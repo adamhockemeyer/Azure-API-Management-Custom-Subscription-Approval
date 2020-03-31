@@ -25,6 +25,121 @@ Now that we have a product that requires a subscription and approval, lets setup
 
 ## 2 - Logic App
 
+Create a new blank Logic App in the Azure portal if you haven't already.  We are going to use the [Azure Management REST API](https://docs.microsoft.com/en-us/rest/api/apimanagement/) to do the following:
+
+1. Poll for API Management subscriptions that are in a 'submitted' state.
+2. Filter the results by the product(scope) that the subscription is for.
+3. Loop through each pending subscription and email the appropriate approver for the specific product.
+4. If approver approved, call the REST API and update the state and notify the end user.
+
+Here is a high level view of the Logic App, and then we will dig into each part.
+
+![Logic App Overview][LOGIC_APP_1]
+
+### 2.1 - Sliding Window Trigger
+
+Create a Sliding Window trigger.  If you select say a 5 minute window, the sliding trigger would start at say 10:00AM and finish at 10:05AM and the Sliding Window trigger will output 2 variables with the start and end times.  We will use this 'window' later in the approval flow to make sure we are only sending new notifications and not ones that have already been sent.
+
+![Logic App Trigger][LOGIC_APP_2]
+
+### 2.2 HTTP Action (Get API Management Subscriptions - Submitted State)
+
+Now that the Logic App as started from the Sliding Window trigger, we will call to the Azure Management REST API for API Management and list all of the subscriptions that are in the 'submitted' state.  To form the API call you will need to pass in a few variables.
+
+![Logic App HTTP][LOGIC_APP_3]
+
+The API endpoint is:
+`https://management.azure.com/subscriptions/@{parameters('SubscriptionId')}/resourceGroups/@{parameters('ResourceGroupName')}/providers/Microsoft.ApiManagement/service/@{parameters('APIMServiceName')}/subscriptions?$filter=state eq 'submitted'&api-version=2019-01-01`
+
+Since the Azure Management REST API is very powerful, you need to be authenticated to make a call to it.  I chose to use Managed Identity, but you could also use a OAuth Bearer token among others.  Managed Identity is nice because you don't need to deal with tokens.  To use Managed Identity, you would need to create a new Managed Identity in the Azure portal, and then in your API Management portal, under 'Access Control (IAM)' assign the Managed Identity you created to have access.
+
+### 2.3 Parse JSON
+
+The next step is to parse the JSON, which will make it easy to work with the results of the HTTP call later.
+
+![Logic App Parse JSON][LOGIC_APP_4]
+
+The schema I used was:
+
+```
+{
+    "properties": {
+        "count": {
+            "type": "integer"
+        },
+        "value": {
+            "items": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "properties": {
+                        "properties": {
+                            "allowTracing": {
+                                "type": "boolean"
+                            },
+                            "createdDate": {
+                                "type": "string"
+                            },
+                            "displayName": {},
+                            "endDate": {},
+                            "expirationDate": {},
+                            "notificationDate": {},
+                            "ownerId": {
+                                "type": "string"
+                            },
+                            "primaryKey": {
+                                "type": "string"
+                            },
+                            "scope": {
+                                "type": "string"
+                            },
+                            "secondaryKey": {
+                                "type": "string"
+                            },
+                            "startDate": {},
+                            "state": {
+                                "type": "string"
+                            },
+                            "stateComment": {}
+                        },
+                        "type": "object"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "type",
+                    "name",
+                    "properties"
+                ],
+                "type": "object"
+            },
+            "type": "array"
+        }
+    },
+    "type": "object"
+}
+```
+
+### 2.4 Filter by Product
+
+Now that we have the 'submitted' subscriptions, we can filter by the API Management 'product' based on the scope property.
+
+![Logic App Filter][LOGIC_APP_5]
+
+![Logic App Filter][LOGIC_APP_6]
 
 [APIM_1]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/APIM_1.jpg "API Management Settings"
 [APIM_2]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/APIM_2.jpg "API Management Notifications"
+[LOGIC_APP_1]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_1.jpg "Logic App Overview"
+[LOGIC_APP_2]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_2.jpg "Logic App Trigger"
+[LOGIC_APP_3]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_3.jpg "Logic App HTTP"
+[LOGIC_APP_4]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_4.jpg "Logic App Parse JSON"
+[LOGIC_APP_5]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_5.jpg "Logic App Filter Products"
+[LOGIC_APP_6]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_6.jpg "Logic App Filter Products"
