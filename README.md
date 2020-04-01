@@ -135,6 +135,58 @@ Now that we have the 'submitted' subscriptions, we can filter by the API Managem
 
 ![Logic App Filter][LOGIC_APP_6]
 
+### 2.5 Loop Each 'Submitted' Subscription
+
+The next step is to loop through each 'submitted' product subscription, and send an email to an approver for the given product.  Below is a zoomed out view of what the loop flow looks like in its entirety before walking through each step.  In this example I am only taking an action if the request was approved.  This would likely need to be extended to handle if the request was rejected or also an additional or seperate peice of logic to clean up 'old' submissions (i.e. expire them, remind the approver, etc.)
+
+![Logic App Subscription Loop][LOGIC_APP_7]
+
+### 2.5.1 Only check for new submissions
+
+A benefit of using the 'Sliding Window' trigger to kick this entire logic app off, is that it has two output variables that result from the trigger running.  We can use 'Start Time' and 'End Time' from the 'Sliding Window' trigger to ensure we are only looking at a product subscriptions for a given time frame.  In this example, the Logic App runs every 5 minutes, and then we will use this 5 minute period of time to see if any new product subscriptions were created in that time which need to be sent to an approver.
+
+![Logic App Subscription Dates][LOGIC_APP_8]
+
+If the result is 'true', then we have recieved a new product subscription within the 5 minute sliding window.
+
+### 2.5.2 Send product subscription approval email
+
+Next we will send an email to an appover of our choice (woohoo!) for the particular product flow we are working on.  I used the built in Office 365 'Send Approval Email', but you could also format up your own email and have buttons in the email that trigger an appropriate action.
+
+![Logic App Subscription Dates][LOGIC_APP_9]
+
+### 2.5.3 Check if the subscription was approved
+
+Once the approver makes an action (Approve/Reject in this case), the next step of the Logic App is to handle the decision.  This example only handles the approval, but you would likely want to handle the rejections as well.  Add a condition action to check for the appropriate status.
+
+![Logic App Subscription Approval][LOGIC_APP_10]
+
+### 2.5.4 Update the product subscription via REST API
+
+Now that the approver took 'Approve' action, call the API Management REST API and update the status for the subscription to 'active'.
+
+![Logic App Approval Update][LOGIC_APP_11]
+
+The API endpoint is:
+`https://management.azure.com/subscriptions/@{parameters('SubscriptionId')}/resourceGroups/@{parameters('ResourceGroupName')}/providers/Microsoft.ApiManagement/service/@{parameters('APIMServiceName')}/subscriptions/@{items('For_each')?['name']}?api-version=2019-01-01&notify=true`
+
+Headers:
+`Content-Type: application/json`
+`If-Match: *`
+
+Body:
+```
+{
+  "properties": {
+    "state": "active"
+  }
+}
+```
+
+And thats it!  You have successfully created a custom approval flow for product subscriptions.
+
+
+
 [APIM_1]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/APIM_1.jpg "API Management Settings"
 [APIM_2]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/APIM_2.jpg "API Management Notifications"
 [LOGIC_APP_1]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_1.jpg "Logic App Overview"
@@ -143,3 +195,8 @@ Now that we have the 'submitted' subscriptions, we can filter by the API Managem
 [LOGIC_APP_4]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_4.jpg "Logic App Parse JSON"
 [LOGIC_APP_5]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_5.jpg "Logic App Filter Products"
 [LOGIC_APP_6]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_6.jpg "Logic App Filter Products"
+[LOGIC_APP_7]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_7.jpg "Logic App Filtered Product Subscriptions Loop"
+[LOGIC_APP_8]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_8.jpg "Logic App Filtered Product Subscriptions Loop Date Condition"
+[LOGIC_APP_9]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_9.jpg "Logic App Send Approval Email"
+[LOGIC_APP_10]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_10.jpg "Logic App Approval"
+[LOGIC_APP_11]: https://github.com/adamhockemeyer/Azure-API-Management-Custom-Subscription-Approval/blob/master/images/LOGIC_APP_11.jpg "Logic App Approval Update"
