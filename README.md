@@ -7,7 +7,7 @@ An example of how to create a custom workflow for Azure API Management product s
 
 As your company continues to adopt APIM, you may have considered if you should have multiple APIM instances or if you can use a shared APIM instance that all of the organizations API's and products go into.  A feature of APIM products' is that you can require users of your API to register for a subscription to use your API, and you can also set whether that subscription should be automatically approved or if an admin or some other user should be the approver.  The tricky issue here is that if your products are managed by different teams all using a shared APIM instance, then each team may require a unique group or user/users that should be the approvers for a specific product.
 
-One of the things that we discovered in our efforts to utilize the shared instance approache was the need to have product owners approve subscription requests. In addition, if you are working with Azure APIM and looking to provide a shared infrastructure experience, we suggest looking at: https://github.com/Azure/azure-api-management-devops-resource-kit.
+One of the things that we discovered in our efforts to utilize the shared instance approach was the need to have product owners approve subscription requests. In addition, if you are working with Azure APIM and looking to provide a shared infrastructure experience, we suggest looking at: https://github.com/Azure/azure-api-management-devops-resource-kit.
 
 This guide will walk through how to create a Logic App that will allow for a custom subscription approval flow per product in Azure API Management.
 
@@ -139,7 +139,7 @@ Now that we have the 'submitted' subscriptions, we can filter by the API Managem
 
 ### 2.5 Loop Each 'Submitted' Subscription
 
-The next step is to loop through each 'submitted' product subscription, and send an email to an approver for the given product.  Below is a zoomed out view of what the loop flow looks like in its entirety before walking through each step.  In this example I am only taking an action if the request was approved.  This would likely need to be extended to handle if the request was rejected or also an additional or seperate peice of logic to clean up 'old' submissions (i.e. expire them, remind the approver, etc.)
+The next step is to loop through each 'submitted' product subscription, and send an email to an approver for the given product.  Below is a zoomed out view of what the loop flow looks like in its entirety before walking through each step.  In this example I am only taking an action if the request was approved.  This would likely need to be extended to handle if the request was rejected or also an additional or separate piece of logic to clean up 'old' submissions (i.e. expire them, remind the approver, etc.)
 
 ![Logic App Subscription Loop][LOGIC_APP_7]
 
@@ -149,11 +149,11 @@ A benefit of using the 'Sliding Window' trigger to kick this entire logic app of
 
 ![Logic App Subscription Dates][LOGIC_APP_8]
 
-If the result is 'true', then we have recieved a new product subscription within the 5 minute sliding window.
+If the result is 'true', then we have received a new product subscription within the 5 minute sliding window.
 
 ### 2.5.2 Send product subscription approval email
 
-Next we will send an email to an appover of our choice (woohoo!) for the particular product flow we are working on.  I used the built in Office 365 'Send Approval Email', but you could also format up your own email and have buttons in the email that trigger an appropriate action.
+Next we will send an email to an approver of our choice (woohoo!) for the particular product flow we are working on.  I used the built in Office 365 'Send Approval Email', but you could also format up your own email and have buttons in the email that trigger an appropriate action.
 
 ![Logic App Subscription Dates][LOGIC_APP_9]
 
@@ -185,7 +185,7 @@ Body:
 }
 ```
 
-And thats it!  You have successfully created a custom approval flow for product subscriptions.
+And that's it!  You have successfully created a custom approval flow for product subscriptions.
 
 
 
