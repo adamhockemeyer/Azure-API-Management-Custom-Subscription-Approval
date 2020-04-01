@@ -38,7 +38,7 @@ Here is a high level view of the Logic App, and then we will dig into each part.
 
 ### 2.1 - Sliding Window Trigger
 
-Create a Sliding Window trigger.  If you select say a 5 minute window, the sliding trigger would start at say 10:00AM and finish at 10:05AM and the Sliding Window trigger will output 2 variables with the start and end times.  We will use this 'window' later in the approval flow to make sure we are only sending new notifications and not ones that have already been sent.
+Create a Sliding Window trigger.  If you select for example a 5 minute window, the sliding trigger would start at 10:00AM and finish at 10:05AM and the Sliding Window trigger will output 2 variables with the start and end times.  We will use this 'window' later in the approval flow to make sure we are only sending new notifications and not ones that have already been sent.
 
 ![Logic App Trigger][LOGIC_APP_2]
 
